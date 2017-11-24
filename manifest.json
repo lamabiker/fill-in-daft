@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+
+  "name": "Daft.ie fill in helper",
+  "description": "This extension allows the user to fill in custom messages in Daft.ie.",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+
+  "permissions": [
+    "tabs",
+    "storage",
+    "http://www.daft.ie/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["http://www.daft.ie/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

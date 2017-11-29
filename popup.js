@@ -1,25 +1,8 @@
-function fillIn(e) {
-  const target = e.target.value;
-  let data = JSON.parse(localStorage.getItem(target));
-
-  Object.keys(data).forEach(function(i) {
-    let element = document.getElementById(i);
-    element.value = data[i];
-  });
-}
-
-function triggerForm() {
-  let fields = ['name', 'phone', 'email', 'message'];
-  let data = {};
-  fields.forEach((i) => {
-    data[i] = document.getElementById(i).value;
-  });
-  getPageData(data);
-}
-
 function initPopup() {
+
+  // Event listeners triggerForm() and prefillFields()
+  names.addEventListener('change', prefillFields);
   trigger.onclick = triggerForm;
-  names.addEventListener('change', fillIn);
 
   names.innerHTML = '';
   let opt = document.createElement('option', { value: 0 });
@@ -30,8 +13,6 @@ function initPopup() {
 }
 
 function initPrefilledOptions() {
-  const select = document.getElementById('names');
-
   if(localStorage.length) {
     for (let key in localStorage){
       let opt = document.createElement('option');
@@ -39,19 +20,32 @@ function initPrefilledOptions() {
       opt.innerText = key;
       names.appendChild(opt);
     }
-    names.className = `${select.className.split(' ')[0]} is-visible`;
+    names.className = `${names.className.split(' ')[0]} is-visible`;
   } else {
-    names.className = `${select.className.split(' ')[0]} is-hidden`;
+    names.className = `${names.className.split(' ')[0]} is-hidden`;
   }
 }
 
-function handleStateChange(e) {
-  let response = e.target.response;
-  if(response) {
-    let json = JSON.parse(response);
-  }
+// UI action functions
+function prefillFields(e) {
+  const target = e.target.value;
+  let data = JSON.parse(localStorage.getItem(target));
+
+  Object.keys(data).forEach(function(i) {
+    let element = document.getElementById(i);
+    element.value = data[i];
+  });
+}
+function triggerForm() {
+  let fields = ['name', 'phone', 'email', 'message'];
+  let data = {};
+  fields.forEach((i) => {
+    data[i] = document.getElementById(i).value;
+  });
+  getPageData(data);
 }
 
+// Handle JSON if file provided, then iniitialise popup
 function handleData(data) {
   if(data) {
     let json = JSON.parse(data);
@@ -67,17 +61,7 @@ function handleData(data) {
   initPopup();
 }
 
-function getPageData(data) {
-
-  chrome.tabs.query( { active: true, currentWindow: true }, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { data }, function(response) {
-      let json = { "data": [data] };
-      handleData(JSON.stringify(json));
-    });
-  });
-
-}
-
+// Helper functions
 function makeRequest(opts) {
   return new Promise(function (resolve, reject) {
     var xhr = new XMLHttpRequest();
@@ -102,6 +86,7 @@ function makeRequest(opts) {
   });
 }
 
+// Trigger popup on load
 document.addEventListener('DOMContentLoaded', () => {
 
   makeRequest({
@@ -111,7 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
   .then(handleData)
   .catch(function (err) {
     console.warn('Augh, no JSON file or there was an error!', err.statusText);
+
     initPopup();
   });
 
 });
+
+// Interact with page and save to `localStorage`
+function getPageData(data) {
+
+  chrome.tabs.query( { active: true, currentWindow: true }, function(tabs) {
+    chrome.tabs.sendMessage(tabs[0].id, { data }, function(response) {
+      let json = { "data": [data] };
+      handleData(JSON.stringify(json));
+    });
+  });
+
+}

@@ -20,13 +20,22 @@ function triggerForm() {
 function initPopup() {
   const select = document.getElementById('names');
   const trigger = document.getElementById('trigger');
+
   select.addEventListener('change', fillIn);
+  select.innerHTML = '';
+
   trigger.onclick = triggerForm;
-  for (let key in localStorage){
-    let opt = document.createElement('option');
-    opt.value = key;
-    opt.innerHTML = key;
-    names.appendChild(opt);
+
+  if(localStorage.length) {
+    for (let key in localStorage){
+      let opt = document.createElement('option');
+      opt.value = key;
+      opt.innerHTML = key;
+      names.appendChild(opt);
+    }
+    select.className = `${select.className.split(' ')[0]} is-visible`;
+  } else {
+    select.className = `${select.className.split(' ')[0]} is-hidden`;
   }
 }
 
@@ -41,9 +50,11 @@ function handleData(data) {
   if(data) {
     let json = JSON.parse(data);
     json.data.forEach((item) => {
-      let obj = {};
-      obj[item.name] = JSON.stringify(item);
-      localStorage.setItem(item.name, JSON.stringify(item));
+      if(!localStorage.getItem(item.name)) {
+        let obj = {};
+        obj[item.name] = JSON.stringify(item);
+        localStorage.setItem(item.name, JSON.stringify(item));
+      }
     })
   }
 
@@ -54,7 +65,8 @@ function getPageData(data) {
 
   chrome.tabs.query( { active: true, currentWindow: true }, function(tabs) {
     chrome.tabs.sendMessage(tabs[0].id, { data }, function(response) {
-      console.log('success');
+      let json = { "data": [data] };
+      handleData(JSON.stringify(json));
     });
   });
 
@@ -92,7 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
   })
   .then(handleData)
   .catch(function (err) {
-    console.error('Augh, there was an error!', err.statusText);
+    console.warn('Augh, no JSON file or there was an error!', err.statusText);
+    initPopup();
   });
 
 });

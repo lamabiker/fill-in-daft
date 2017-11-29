@@ -18,24 +18,30 @@ function triggerForm() {
 }
 
 function initPopup() {
-  const select = document.getElementById('names');
-  const trigger = document.getElementById('trigger');
-
-  select.addEventListener('change', fillIn);
-  select.innerHTML = '';
-
   trigger.onclick = triggerForm;
+  names.addEventListener('change', fillIn);
+
+  names.innerHTML = '';
+  let opt = document.createElement('option', { value: 0 });
+  opt.innerText = 'Select a saved option';
+  names.appendChild(opt);
+
+  initPrefilledOptions();
+}
+
+function initPrefilledOptions() {
+  const select = document.getElementById('names');
 
   if(localStorage.length) {
     for (let key in localStorage){
       let opt = document.createElement('option');
       opt.value = key;
-      opt.innerHTML = key;
+      opt.innerText = key;
       names.appendChild(opt);
     }
-    select.className = `${select.className.split(' ')[0]} is-visible`;
+    names.className = `${select.className.split(' ')[0]} is-visible`;
   } else {
-    select.className = `${select.className.split(' ')[0]} is-hidden`;
+    names.className = `${select.className.split(' ')[0]} is-hidden`;
   }
 }
 
@@ -86,7 +92,7 @@ function makeRequest(opts) {
         });
       }
     };
-    xhr.onerror = function () {
+    xhr.onerror = function (e) {
       reject({
         status: this.status,
         statusText: xhr.statusText
